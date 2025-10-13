@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "RWA Marketplace",
+    "slug": "market-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "jsEngine": "jsc",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.marketplace.rwa"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.marketplace.rwa"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24
+          },
+          "ios": {
+            "deploymentTarget": "15.1"
+          }
+        }
+      ]
+    ],
+    "scheme": "rwamarketplace",
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      },
+      "privyAppId": "cmgmjginy01t3jo0c2ijhylv8",
+      "privyClientId": "client-WY6RbxwyBmNUkbJnxm7jq9qpgRk6vXyN3NwBN94JCAuxj"
+    }
+  }
+}

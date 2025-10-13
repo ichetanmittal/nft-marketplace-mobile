@@ -1,0 +1,273 @@
+/**
+ * App Entry Point (Mobile)
+ * Main component with Privy provider and onboarding flow
+ */
+
+import 'react-native-get-random-values'
+import { Buffer } from 'buffer'
+import process from 'process'
+
+global.Buffer = Buffer
+global.process = process
+
+import React, { useState, useEffect } from 'react'
+import { NavigationContainer } from '@react-navigation/native'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { StatusBar } from 'expo-status-bar'
+import { PrivyProvider, usePrivy, useWallets, useLogin } from '@privy-io/expo'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import Constants from 'expo-constants'
+
+import type { UserProfile, UserRole, OnboardingStep } from './src/types/onboarding'
+import RoleSelectionScreen from './src/screens/RoleSelectionScreen'
+import UsernameSetupScreen from './src/screens/UsernameSetupScreen'
+import WalletDisplayScreen from './src/screens/WalletDisplayScreen'
+import FundingScreen from './src/screens/FundingScreen'
+import DashboardScreen from './src/screens/DashboardScreen'
+import MarketplaceScreen from './src/screens/MarketplaceScreen'
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
+
+// Configuration
+const PRIVY_APP_ID = Constants.expoConfig?.extra?.privyAppId || process.env.EXPO_PUBLIC_PRIVY_APP_ID || ''
+const BICONOMY_API_KEY = Constants.expoConfig?.extra?.biconomyApiKey || process.env.EXPO_PUBLIC_BICONOMY_MEE_API_KEY
+
+const queryClient = new QueryClient()
+const Stack = createNativeStackNavigator()
+
+// Main App Component
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <PrivyProvider appId={PRIVY_APP_ID}>
+        <NavigationContainer>
+          <StatusBar style="auto" />
+          <AppContent />
+        </NavigationContainer>
+      </PrivyProvider>
+    </QueryClientProvider>
+  )
+}
+
+function AppContent() {
+  const { ready, authenticated } = usePrivy()
+  const { wallets } = useWallets()
+  const { login } = useLogin()
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true)
+  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('role-selection')
+  const [role, setRole] = useState<UserRole | null>(null)
+
+  const embeddedWallet = wallets.find(w => w.walletClientType === 'privy')
+
+  // Load user profile from AsyncStorage
+  useEffect(() => {
+    if (authenticated && embeddedWallet) {
+      loadUserProfile()
+    }
+  }, [authenticated, embeddedWallet])
+
+  const loadUserProfile = async () => {
+    try {
+      const savedProfile = await AsyncStorage.getItem('user_profile')
+      if (savedProfile) {
+        const profile = JSON.parse(savedProfile)
+        if (profile.walletAddress === embeddedWallet?.address) {
+          setUserProfile(profile)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load user profile:', error)
+    } finally {
+      setIsLoadingProfile(false)
+    }
+  }
+
+  const handleOnboardingComplete = async (profile: UserProfile) => {
+    try {
+      await AsyncStorage.setItem('user_profile', JSON.stringify(profile))
+      setUserProfile(profile)
+    } catch (error) {
+      console.error('Failed to save profile:', error)
+    }
+  }
+
+  const handleLogout = async () => {
+    setUserProfile(null)
+    await AsyncStorage.removeItem('user_profile')
+  }
+
+  if (!ready) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    )
+  }
+
+  if (!authenticated) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.title}>RWA Marketplace</Text>
+        <Text style={styles.subtitle}>Omnichain NFT Trading</Text>
+        <TouchableOpacity style={styles.loginButton} onPress={login}>
+          <Text style={styles.loginButtonText}>Login with Privy</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  }
+
+  if (isLoadingProfile) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+        <Text style={styles.loadingText}>Loading profile...</Text>
+      </View>
+    )
+  }
+
+  if (!embeddedWallet) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorText}>No wallet found</Text>
+      </View>
+    )
+  }
+
+  if (!userProfile) {
+    // Onboarding flow
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="RoleSelection">
+          {() => (
+            <RoleSelectionScreen
+              onRoleSelect={(selectedRole) => {
+                setRole(selectedRole)
+                setOnboardingStep('username-setup')
+              }}
+            />
+          )}
+        </Stack.Screen>
+        {onboardingStep !== 'role-selection' && role && (
+          <>
+            <Stack.Screen name="UsernameSetup">
+              {() => (
+                <UsernameSetupScreen
+                  role={role}
+                  onComplete={(username, imageUrl) => {
+                    setOnboardingStep('wallet-display')
+                  }}
+                  onBack={() => setOnboardingStep('role-selection')}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="WalletDisplay">
+              {() => (
+                <WalletDisplayScreen
+                  walletAddress={embeddedWallet.address}
+                  username="user"
+                  onContinue={() => setOnboardingStep('funding')}
+                  onBack={() => setOnboardingStep('username-setup')}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="Funding">
+              {() => (
+                <FundingScreen
+                  walletAddress={embeddedWallet.address}
+                  onContinue={() => {
+                    const profile: UserProfile = {
+                      role,
+                      username: 'user',
+                      walletAddress: embeddedWallet.address,
+                      onboardingCompleted: true,
+                      createdAt: new Date().toISOString(),
+                    }
+                    handleOnboardingComplete(profile)
+                  }}
+                  onSkip={() => {
+                    const profile: UserProfile = {
+                      role,
+                      username: 'user',
+                      walletAddress: embeddedWallet.address,
+                      onboardingCompleted: true,
+                      createdAt: new Date().toISOString(),
+                    }
+                    handleOnboardingComplete(profile)
+                  }}
+                  onBack={() => setOnboardingStep('wallet-display')}
+                />
+              )}
+            </Stack.Screen>
+          </>
+        )}
+      </Stack.Navigator>
+    )
+  }
+
+  // Main app with dashboard and marketplace
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Dashboard">
+        {({ navigation }) => (
+          <DashboardScreen
+            userProfile={userProfile}
+            onLogout={handleLogout}
+            onNavigateToMarketplace={() => navigation.navigate('Marketplace')}
+          />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="Marketplace">
+        {() => (
+          <MarketplaceScreen
+            wallet={embeddedWallet}
+            signAuthorizationFn={null}
+            apiKey={BICONOMY_API_KEY}
+          />
+        )}
+      </Stack.Screen>
+    </Stack.Navigator>
+  )
+}
+
+const styles = StyleSheet.create({
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginBottom: 40,
+  },
+  loginButton: {
+    backgroundColor: '#3B82F6',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+  },
+  loginButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 16,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#DC2626',
+  },
+})

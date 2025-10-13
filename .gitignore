@@ -1,0 +1,76 @@
+# Expo
+.expo/
+dist/
+web-build/
+
+.expo/
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Macros
+*.hprof
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Ruby
+.direnv/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# VS Code
+.vscode/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OSX
+.DS_Store
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+.gradle/
+local.properties
+android/app/build/
+android/.gradle/
+
+# iOS
+*.ipa
+*.dSYM.zip
+*.dSYM
+ios/Pods/
+ios/.xcode.env.local
+Podfile.lock
+xcuserdata/
+*.xcworkspace/
+
+# Misc
+*.log
