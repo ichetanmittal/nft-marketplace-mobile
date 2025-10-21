@@ -14,6 +14,7 @@ import {
   Alert,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
+import { ONBOARDING_TOKENS } from '../types/onboarding'
 
 interface WalletDisplayScreenProps {
   walletAddress: string
@@ -38,55 +39,80 @@ export default function WalletDisplayScreen({
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Top bar with subtle Back and username chip */}
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={onBack} accessibilityLabel="Go back">
+            <Text style={styles.backLink}>Back</Text>
+          </TouchableOpacity>
+          <View style={{ flex: 1 }} />
+          <View style={styles.userPill}>
+            <Text style={styles.userPillText}>@{username}</Text>
+          </View>
+        </View>
+
+        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Your Wallet</Text>
-          <Text style={styles.subtitle}>
-            Wallet created with Privy
+          <Text style={styles.title}>Your Omnichain Wallet</Text>
+          <Text style={styles.subtitleMono}>
+            Deposit primary tokens into your universal account
           </Text>
         </View>
 
-        <View style={styles.content}>
-          {/* Username Display */}
-          <View style={styles.usernameCard}>
-            <Text style={styles.usernameLabel}>Username</Text>
-            <Text style={styles.username}>@{username}</Text>
-          </View>
-
-          {/* Privy Info */}
-          <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>✨ Privy Embedded Wallet</Text>
-            <Text style={styles.infoText}>
-              Your wallet is securely managed by Privy, providing a seamless
-              authentication experience without managing private keys.
-            </Text>
-          </View>
-
-          {/* Wallet Address */}
-          <View style={styles.addressContainer}>
-            <Text style={styles.sectionTitle}>Your Wallet Address</Text>
-            <View style={styles.addressCard}>
-              <View style={styles.addressInfo}>
-                <Text style={styles.addressLabel}>Address</Text>
-                <Text style={styles.address}>{shortAddress}</Text>
+        {/* Recommended token chips */}
+        <View style={styles.chipsRow}>
+          {ONBOARDING_TOKENS.map(({ symbol, icon }) => (
+            <View key={symbol} style={styles.chip}>
+              <View style={styles.chipIcon}>
+                <Text style={styles.chipIconText}>{icon}</Text>
               </View>
-              <TouchableOpacity style={styles.copyButton} onPress={copyToClipboard}>
-                <Text style={styles.copyButtonText}>Copy</Text>
-              </TouchableOpacity>
+              <Text style={styles.chipText}>{symbol}</Text>
             </View>
-          </View>
+          ))}
         </View>
 
-        {/* Buttons */}
-        <View style={styles.buttons}>
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
-            <Text style={styles.backButtonText}>Back</Text>
-          </TouchableOpacity>
+        {/* Helper copy */}
+        <Text style={styles.helperText}>
+          You can deposit any token on supported networks. We recommend any of
+          the following 5 tokens, which can be immediately used for gas and
+          trading
+        </Text>
 
-          <TouchableOpacity style={styles.continueButton} onPress={onContinue}>
-            <Text style={styles.continueButtonText}>Complete Setup</Text>
-          </TouchableOpacity>
+        {/* Universal Wallet panel */}
+        <View style={styles.walletPanel}>
+          <Text style={styles.panelTitle}>Your Universal Wallet</Text>
+
+          {/* Solana */}
+          <View style={styles.addressRow}>
+            <View style={styles.addressInfo}>
+              <Text style={styles.addressLabelDark}>Solana Address</Text>
+              <Text style={styles.addressMono}>{shortAddress}</Text>
+            </View>
+            <TouchableOpacity style={styles.iconButton} onPress={copyToClipboard}>
+              <Text style={styles.iconButtonText}>⧉</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.rowDivider} />
+
+          {/* EVM */}
+          <View style={styles.addressRow}>
+            <View style={styles.addressInfo}>
+              <Text style={styles.addressLabelDark}>EVM Address</Text>
+              <Text style={styles.addressMono}>{shortAddress}</Text>
+            </View>
+            <TouchableOpacity style={styles.iconButton} onPress={copyToClipboard}>
+              <Text style={styles.iconButtonText}>⧉</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
+
+      {/* Bottom primary action */}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.primaryButton} onPress={onContinue}>
+          <Text style={styles.primaryButtonText}>NEXT STEP</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   )
 }
@@ -97,131 +123,165 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   scrollContent: {
-    flexGrow: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 120, // leave space for footer button
+  },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  backLink: {
+    color: '#6B7280',
+    fontSize: 14,
+  },
+  userPill: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  userPillText: {
+    color: '#111827',
+    fontWeight: '600',
+    fontSize: 12,
   },
   header: {
-    marginBottom: 24,
     alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#0F172A',
     textAlign: 'center',
+    marginBottom: 10,
   },
-  subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
+  subtitleMono: {
     textAlign: 'center',
-  },
-  content: {
-    flex: 1,
-  },
-  usernameCard: {
-    backgroundColor: '#F9FAFB',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    alignItems: 'center',
-  },
-  usernameLabel: {
+    color: '#4B5563',
+    textTransform: 'uppercase',
+    letterSpacing: 1.1,
     fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
+    lineHeight: 18,
+    fontFamily: 'monospace',
   },
-  username: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  infoCard: {
-    backgroundColor: '#EFF6FF',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 24,
-  },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E40AF',
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#1E40AF',
-    lineHeight: 20,
-  },
-  addressContainer: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
+  chipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: 14,
     marginBottom: 12,
   },
-  addressCard: {
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    marginHorizontal: 6,
+    marginVertical: 6,
+  },
+  chipIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  chipIconText: {
+    fontSize: 12,
+    color: '#111827',
+  },
+  chipText: {
+    fontSize: 12,
+    color: '#111827',
+    fontWeight: '600',
+  },
+  helperText: {
+    textAlign: 'center',
+    color: '#6B7280',
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 18,
+  },
+  walletPanel: {
+    backgroundColor: '#0B0B0B',
+    borderRadius: 22,
+    padding: 18,
+  },
+  panelTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  addressRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F9FAFB',
-    padding: 16,
-    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  rowDivider: {
+    height: 10,
   },
   addressInfo: {
     flex: 1,
+    paddingRight: 10,
   },
-  addressLabel: {
+  addressLabelDark: {
     fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
+    color: '#9CA3AF',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
-  address: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1F2937',
+  addressMono: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#3DFF89',
     fontFamily: 'monospace',
   },
-  copyButton: {
-    backgroundColor: '#3B82F6',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  copyButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
+  iconButtonText: {
     color: '#FFFFFF',
+    fontSize: 16,
   },
-  buttons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
+  footer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 22,
+    backgroundColor: '#FFFFFF',
   },
-  backButton: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 14,
-    borderRadius: 12,
+  primaryButton: {
+    backgroundColor: '#0F0F0F',
+    borderRadius: 16,
+    paddingVertical: 16,
     alignItems: 'center',
   },
-  backButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  continueButton: {
-    flex: 2,
-    backgroundColor: '#3B82F6',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  continueButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+  primaryButtonText: {
     color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 1.2,
   },
 })
