@@ -25,6 +25,7 @@ import WalletDisplayScreen from './src/screens/WalletDisplayScreen'
 
 // Types
 import type { UserRole, UserProfile } from './src/types/onboarding'
+import FundingScreen from '@/screens/FundingScreen'
 
 const Stack = createNativeStackNavigator()
 
@@ -231,7 +232,7 @@ interface OnboardingFlowProps {
 }
 
 function OnboardingFlow({ user, wallets, createWallet, onComplete }: OnboardingFlowProps) {
-  const [currentStep, setCurrentStep] = useState<'role' | 'username' | 'wallet'>('role')
+  const [currentStep, setCurrentStep] = useState<'role' | 'username' | 'wallet' | 'funding'>('role')
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null)
   const [username, setUsername] = useState('')
   const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>()
@@ -266,6 +267,10 @@ function OnboardingFlow({ user, wallets, createWallet, onComplete }: OnboardingF
     setUsername(newUsername)
     setProfileImageUrl(imageUrl)
     setCurrentStep('wallet')
+  }
+  
+  const handleWalletComplete = () => {
+    setCurrentStep('funding')
   }
 
   const handleOnboardingComplete = async () => {
@@ -318,10 +323,22 @@ function OnboardingFlow({ user, wallets, createWallet, onComplete }: OnboardingF
       <WalletDisplayScreen
         walletAddress={walletAddress}
         username={username}
-        onContinue={handleOnboardingComplete}
+        onContinue={handleWalletComplete}
         onBack={() => setCurrentStep('username')}
       />
     )
+  }
+
+  if (currentStep === "funding" && username) {
+    if(username) {
+        return (
+        <FundingScreen
+          username={username}
+          onTopUp={handleOnboardingComplete}
+          onSkip={handleOnboardingComplete}
+        />
+      );
+    }
   }
 
   return (
