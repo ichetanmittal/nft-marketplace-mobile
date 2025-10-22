@@ -15,7 +15,7 @@ import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, Alert } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { PrivyProvider, usePrivy, useLoginWithEmail, useEmbeddedEthereumWallet, useLoginWithOAuth, useLoginWithSMS, useLoginWithSiwe } from '@privy-io/expo'
+import { PrivyProvider, usePrivy, useLoginWithEmail, useEmbeddedEthereumWallet, useLoginWithOAuth, useLoginWithSiwe } from '@privy-io/expo'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Constants from 'expo-constants'
 
@@ -123,23 +123,18 @@ function MainApp() {
 //
 // Authentication Methods:
 // 1. Email: OTP sent to email (enabled by default in Privy)
-// 2. Google OAuth: Requires Google OAuth enabled in Privy Dashboard
-//    - Check: Privy Dashboard → Auth Methods → Socials → Google toggle
-//    - Configure redirect URIs for your Expo app
-// 3. SMS: OTP sent to phone (requires SMS method enabled in Privy)
+// 2. Google OAuth: Social login via Google
+// 3. Twitter/X: Social login via Twitter/X
 // 4. Wallet: Sign In With Ethereum (SIWE) - for crypto wallet login
 //
 
-type AuthMethod = 'email' | 'google' | 'sms' | 'wallet'
+type AuthMethod = 'email' | 'google' | 'twitter' | 'wallet'
 
 function LoginScreen() {
   const [authMethod, setAuthMethod] = useState<AuthMethod>('email')
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [showCodeInput, setShowCodeInput] = useState(false)
-  const [phoneNumber, setPhoneNumber] = useState('')
-  const [smsCode, setSmsCode] = useState('')
-  const [showSmsCodeInput, setShowSmsCodeInput] = useState(false)
 
   // Email authentication
   const { sendCode, loginWithCode, state: emailState } = useLoginWithEmail({
@@ -158,8 +153,8 @@ function LoginScreen() {
   // Google OAuth authentication
   const { login: loginWithGoogle, state: googleState } = useLoginWithOAuth()
 
-  // SMS authentication
-  const { sendCode: sendSmsCode, loginWithCode: loginWithSmsCode, state: smsState } = useLoginWithSMS()
+  // Twitter/X OAuth authentication (uses same useLoginWithOAuth with provider: 'twitter')
+  const twitterOAuthResult = useLoginWithOAuth()
 
   // Wallet authentication (Sign In With Ethereum)
   const { loginWithSiwe, state: walletState } = useLoginWithSiwe()
@@ -191,32 +186,21 @@ function LoginScreen() {
     }
   }
 
-  // SMS handlers
-  const handleSendSmsCode = async () => {
-    if (!phoneNumber.trim()) {
-      Alert.alert('Error', 'Please enter your phone number')
-      return
-    }
+  // Twitter/X handler
+  const handleTwitterLogin = async () => {
     try {
-      await sendSmsCode({ phone: phoneNumber.trim() })
-      setShowSmsCodeInput(true)
-      Alert.alert('Code Sent', 'Please check your phone for the SMS verification code.')
-    } catch (error) {
-      console.error('Error sending SMS code:', error)
-      Alert.alert('Error', 'Failed to send SMS code. Please try again.')
-    }
-  }
-
-  const handleSmsLogin = async () => {
-    if (!smsCode.trim()) {
-      Alert.alert('Error', 'Please enter the SMS code')
-      return
-    }
-    try {
-      await loginWithSmsCode({ code: smsCode.trim(), phone: phoneNumber.trim() })
-    } catch (error) {
-      console.error('Error logging in with SMS:', error)
-      Alert.alert('Error', 'Failed to verify SMS code. Please try again.')
+      console.log('Attempting Twitter login with provider: twitter')
+      const result = await twitterOAuthResult.login({ provider: 'twitter' })
+      console.log('Twitter login successful:', result)
+    } catch (error: any) {
+      console.error('Error logging in with Twitter:', error)
+      console.error('Error details:', {
+        message: error?.message,
+        code: error?.code,
+        name: error?.name,
+      })
+      const errorMessage = error?.message || 'Failed to login with Twitter/X. Make sure Twitter OAuth is enabled in Privy dashboard.'
+      Alert.alert('Twitter Login Error', errorMessage)
     }
   }
 
@@ -254,8 +238,8 @@ function LoginScreen() {
   }
 
   const isEmailLoading = emailState.status === 'sending-code' || emailState.status === 'submitting-code'
-  const isSmsLoading = smsState.status === 'sending-code' || smsState.status === 'submitting-code'
   const isGoogleLoading = googleState.status === 'loading'
+  const isTwitterLoading = twitterOAuthResult.state.status === 'loading'
   const isWalletLoading = walletState.status === 'generating-message' || walletState.status === 'awaiting-signature'
 
   return (
@@ -271,8 +255,7 @@ function LoginScreen() {
             onPress={() => {
               setAuthMethod('email')
               setShowCodeInput(false)
-              setSmsCode('')
-              setShowSmsCodeInput(false)
+              setCode('')
             }}
           >
             <Text style={[styles.authMethodTabText, authMethod === 'email' && styles.authMethodTabTextActive]}>
@@ -290,16 +273,15 @@ function LoginScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.authMethodTab, authMethod === 'sms' && styles.authMethodTabActive]}
+            style={[styles.authMethodTab, authMethod === 'twitter' && styles.authMethodTabActive]}
             onPress={() => {
-              setAuthMethod('sms')
+              setAuthMethod('twitter')
               setShowCodeInput(false)
               setCode('')
-              setShowSmsCodeInput(false)
             }}
           >
-            <Text style={[styles.authMethodTabText, authMethod === 'sms' && styles.authMethodTabTextActive]}>
-              SMS
+            <Text style={[styles.authMethodTabText, authMethod === 'twitter' && styles.authMethodTabTextActive]}>
+              Twitter/X
             </Text>
           </TouchableOpacity>
 
@@ -406,71 +388,26 @@ function LoginScreen() {
           </>
         )}
 
-        {/* SMS Authentication */}
-        {authMethod === 'sms' && (
+        {/* Twitter/X Authentication */}
+        {authMethod === 'twitter' && (
           <>
             <Text style={styles.methodSubtitle}>
-              {showSmsCodeInput ? 'Enter the SMS code' : 'Sign in with your phone number'}
+              Sign in with your Twitter/X account
             </Text>
-            {!showSmsCodeInput ? (
-              <>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your phone number"
-                  value={phoneNumber}
-                  onChangeText={setPhoneNumber}
-                  keyboardType="phone-pad"
-                  editable={!isSmsLoading}
-                />
-
-                <TouchableOpacity
-                  style={[styles.loginButton, isSmsLoading && styles.loginButtonDisabled]}
-                  onPress={handleSendSmsCode}
-                  disabled={isSmsLoading}
-                >
-                  {isSmsLoading ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.loginButtonText}>Send Code</Text>
-                  )}
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter SMS code"
-                  value={smsCode}
-                  onChangeText={setSmsCode}
-                  keyboardType="number-pad"
-                  autoComplete="one-time-code"
-                  editable={!isSmsLoading}
-                />
-
-                <TouchableOpacity
-                  style={[styles.loginButton, isSmsLoading && styles.loginButtonDisabled]}
-                  onPress={handleSmsLogin}
-                  disabled={isSmsLoading}
-                >
-                  {isSmsLoading ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.loginButtonText}>Verify & Sign In</Text>
-                  )}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.backButton}
-                  onPress={() => {
-                    setShowSmsCodeInput(false)
-                    setSmsCode('')
-                  }}
-                  disabled={isSmsLoading}
-                >
-                  <Text style={styles.backButtonText}>Use different phone</Text>
-                </TouchableOpacity>
-              </>
-            )}
+            <TouchableOpacity
+              style={[styles.twitterButton, isTwitterLoading && styles.loginButtonDisabled]}
+              onPress={handleTwitterLogin}
+              disabled={isTwitterLoading}
+            >
+              {isTwitterLoading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <Text style={styles.twitterButtonIcon}>𝕏</Text>
+                  <Text style={styles.twitterButtonText}>Continue with Twitter/X</Text>
+                </>
+              )}
+            </TouchableOpacity>
           </>
         )}
 
@@ -1056,6 +993,29 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#1F2937',
+    textAlign: 'center',
+  },
+  // Twitter/X button styles
+  twitterButton: {
+    backgroundColor: '#000000',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: '100%',
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  twitterButtonIcon: {
+    fontSize: 24,
+    color: '#FFFFFF',
+  },
+  twitterButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   // Wallet button styles
