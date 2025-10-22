@@ -12,12 +12,13 @@ global.Buffer = Buffer
 global.process = process
 
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, Alert } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, Alert, SafeAreaView, StatusBar, Image } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { PrivyProvider, usePrivy, useLoginWithEmail, useEmbeddedEthereumWallet, useLoginWithOAuth, useLoginWithSiwe } from '@privy-io/expo'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Constants from 'expo-constants'
+import { LinearGradient } from 'expo-linear-gradient'
 
 // Screens
 import RoleSelectionScreen from './src/screens/RoleSelectionScreen'
@@ -242,201 +243,164 @@ function LoginScreen() {
   const isGoogleLoading = googleState.status === 'loading'
   const isTwitterLoading = twitterOAuthResult.state.status === 'loading'
   const isWalletLoading = walletState.status === 'generating-message' || walletState.status === 'awaiting-signature'
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const [password, setPassword] = useState('')
 
   return (
-    <View style={styles.loginContainer}>
-      <View style={styles.loginContent}>
-        <Text style={styles.loginTitle}>Welcome to RWA Marketplace</Text>
-        <Text style={styles.loginSubtitle}>Choose your sign-in method</Text>
+    <LinearGradient
+      colors={['#C8FF00', '#E8FFA6', '#F5FFD9', '#FFFFFF']}
+      locations={[0, 0.3, 0.6, 1]}
+      style={styles.loginGradientContainer}
+    >
+      <SafeAreaView style={styles.loginSafeArea}>
+        <StatusBar barStyle="dark-content" />
+        
+        <View style={styles.loginContent}>
+          {/* Signup/Login Header */}
+          <View style={styles.loginHeaderContainer}>
+            <Text style={styles.loginHeaderText}>SIGNUP/LOGIN</Text>
+          </View>
 
-        {/* Auth Method Tabs */}
-        <View style={styles.authMethodTabs}>
-          <TouchableOpacity
-            style={[styles.authMethodTab, authMethod === 'email' && styles.authMethodTabActive]}
-            onPress={() => {
-              setAuthMethod('email')
-              setShowCodeInput(false)
-              setCode('')
-            }}
-          >
-            <Text style={[styles.authMethodTabText, authMethod === 'email' && styles.authMethodTabTextActive]}>
-              Email
-            </Text>
-          </TouchableOpacity>
+          {/* Email Input */}
+          {!showCodeInput ? (
+            <>
+              <TextInput
+                style={styles.loginInput}
+                placeholder="E-MAIL"
+                placeholderTextColor="#999999"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                editable={!isEmailLoading}
+              />
 
-          <TouchableOpacity
-            style={[styles.authMethodTab, authMethod === 'google' && styles.authMethodTabActive]}
-            onPress={() => setAuthMethod('google')}
-          >
-            <Text style={[styles.authMethodTabText, authMethod === 'google' && styles.authMethodTabTextActive]}>
-              Google
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.authMethodTab, authMethod === 'twitter' && styles.authMethodTabActive]}
-            onPress={() => {
-              setAuthMethod('twitter')
-              setShowCodeInput(false)
-              setCode('')
-            }}
-          >
-            <Text style={[styles.authMethodTabText, authMethod === 'twitter' && styles.authMethodTabTextActive]}>
-              Twitter/X
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.authMethodTab, authMethod === 'wallet' && styles.authMethodTabActive]}
-            onPress={() => setAuthMethod('wallet')}
-          >
-            <Text style={[styles.authMethodTabText, authMethod === 'wallet' && styles.authMethodTabTextActive]}>
-              Wallet
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Email Authentication */}
-        {authMethod === 'email' && (
-          <>
-            <Text style={styles.methodSubtitle}>
-              {showCodeInput ? 'Enter the verification code' : 'Sign in with your email'}
-            </Text>
-            {!showCodeInput ? (
-              <>
+              {/* Password Input */}
+              <View style={styles.passwordContainer}>
                 <TextInput
-                  style={styles.input}
-                  placeholder="Enter your email"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
+                  style={styles.loginPasswordInput}
+                  placeholder="PASSWORD"
+                  placeholderTextColor="#999999"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!isPasswordVisible}
                   autoCapitalize="none"
-                  autoComplete="email"
                   editable={!isEmailLoading}
                 />
-
-                <TouchableOpacity
-                  style={[styles.loginButton, isEmailLoading && styles.loginButtonDisabled]}
-                  onPress={handleSendCode}
-                  disabled={isEmailLoading}
+                <TouchableOpacity 
+                  style={styles.passwordToggle}
+                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                  activeOpacity={0.6}
                 >
-                  {isEmailLoading ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.loginButtonText}>Send Code</Text>
-                  )}
+                  <Text style={styles.passwordToggleIcon}>
+                    {isPasswordVisible ? '👁️' : '👁️‍🗨️'}
+                  </Text>
                 </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter verification code"
-                  value={code}
-                  onChangeText={setCode}
-                  keyboardType="number-pad"
-                  autoComplete="one-time-code"
-                  editable={!isEmailLoading}
-                />
+              </View>
 
-                <TouchableOpacity
-                  style={[styles.loginButton, isEmailLoading && styles.loginButtonDisabled]}
-                  onPress={handleLogin}
-                  disabled={isEmailLoading}
-                >
-                  {isEmailLoading ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.loginButtonText}>Verify & Sign In</Text>
-                  )}
-                </TouchableOpacity>
+              {/* Send Code Button */}
+              <TouchableOpacity
+                style={[styles.sendCodeButton, isEmailLoading && styles.loginButtonDisabled]}
+                onPress={handleSendCode}
+                disabled={isEmailLoading}
+                activeOpacity={0.7}
+              >
+                {isEmailLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.sendCodeButtonText}>SEND CODE</Text>
+                )}
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              {/* Code Input Screen */}
+              <TextInput
+                style={styles.loginInput}
+                placeholder="VERIFICATION CODE"
+                placeholderTextColor="#999999"
+                value={code}
+                onChangeText={setCode}
+                keyboardType="number-pad"
+                autoComplete="one-time-code"
+                editable={!isEmailLoading}
+              />
 
-                <TouchableOpacity
-                  style={styles.backButton}
-                  onPress={() => {
-                    setShowCodeInput(false)
-                    setCode('')
-                  }}
-                  disabled={isEmailLoading}
-                >
-                  <Text style={styles.backButtonText}>Use different email</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </>
-        )}
+              <TouchableOpacity
+                style={[styles.sendCodeButton, isEmailLoading && styles.loginButtonDisabled]}
+                onPress={handleLogin}
+                disabled={isEmailLoading}
+                activeOpacity={0.7}
+              >
+                {isEmailLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.sendCodeButtonText}>VERIFY & SIGN IN</Text>
+                )}
+              </TouchableOpacity>
 
-        {/* Google Authentication */}
-        {authMethod === 'google' && (
-          <>
-            <Text style={styles.methodSubtitle}>
-              Sign in with your Google account
-            </Text>
-            <TouchableOpacity
-              style={[styles.googleButton, isGoogleLoading && styles.loginButtonDisabled]}
-              onPress={handleGoogleLogin}
-              disabled={isGoogleLoading}
-            >
-              {isGoogleLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <>
-                  <Text style={styles.googleButtonIcon}>🔍</Text>
-                  <Text style={styles.googleButtonText}>Continue with Google</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </>
-        )}
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => {
+                  setShowCodeInput(false)
+                  setCode('')
+                }}
+                disabled={isEmailLoading}
+                activeOpacity={0.5}
+              >
+                <Text style={styles.backButtonText}>Use different email</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
-        {/* Twitter/X Authentication */}
-        {authMethod === 'twitter' && (
-          <>
-            <Text style={styles.methodSubtitle}>
-              Sign in with your Twitter/X account
-            </Text>
-            <TouchableOpacity
-              style={[styles.twitterButton, isTwitterLoading && styles.loginButtonDisabled]}
+          {/* OR Divider */}
+          <View style={styles.orDividerContainer}>
+            <View style={styles.orDividerLine} />
+            <Text style={styles.orDividerText}>OR</Text>
+            <View style={styles.orDividerLine} />
+          </View>
+
+          {/* Social Login Buttons */}
+          <View style={styles.socialButtonsContainer}>
+            <TouchableOpacity 
+              style={styles.socialButton}
               onPress={handleTwitterLogin}
               disabled={isTwitterLoading}
+              activeOpacity={0.6}
             >
               {isTwitterLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color="#000000" />
               ) : (
-                <>
-                  <Text style={styles.twitterButtonIcon}>𝕏</Text>
-                  <Text style={styles.twitterButtonText}>Continue with Twitter/X</Text>
-                </>
+                <Image 
+                  source={require('./assets/twitter.png')} 
+                  style={styles.socialButtonImage}
+                  resizeMode="contain"
+                />
               )}
             </TouchableOpacity>
-          </>
-        )}
 
-        {/* Wallet Authentication */}
-        {authMethod === 'wallet' && (
-          <>
-            <Text style={styles.methodSubtitle}>
-              Sign in with your crypto wallet
-            </Text>
-            <TouchableOpacity
-              style={[styles.walletButton, isWalletLoading && styles.loginButtonDisabled]}
-              onPress={handleWalletLogin}
-              disabled={isWalletLoading}
+            <TouchableOpacity 
+              style={styles.socialButton}
+              onPress={handleGoogleLogin}
+              disabled={isGoogleLoading}
+              activeOpacity={0.6}
             >
-              {isWalletLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+              {isGoogleLoading ? (
+                <ActivityIndicator size="small" color="#000000" />
               ) : (
-                <>
-                  <Text style={styles.walletButtonIcon}>💼</Text>
-                  <Text style={styles.walletButtonText}>Connect Wallet</Text>
-                </>
+                <Image 
+                  source={require('./assets/google.png')} 
+                  style={styles.socialButtonImage}
+                  resizeMode="contain"
+                />
               )}
             </TouchableOpacity>
-          </>
-        )}
-      </View>
-    </View>
-  )
+          </View>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
+  );
 }
 
 // ============================================================================
@@ -1022,5 +986,152 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     textAlign: 'center',
+  },
+  // New Login Screen Styles
+  loginGradientContainer: {
+    flex: 1,
+  },
+  loginSafeArea: {
+    flex: 1,
+    paddingHorizontal: 40,
+    justifyContent: 'flex-end',
+    paddingBottom: 60,
+  },
+  loginHeaderContainer: {
+    marginBottom: 32,
+    width: '100%',
+    backgroundColor: '#000000',
+    borderRadius: 18,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loginHeaderText: {
+    fontSize: 13,
+    fontFamily: 'SFProDisplay-Bold',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 40,
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleButtonInactive: {
+    backgroundColor: '#FFFFFF',
+  },
+  toggleButtonText: {
+    fontSize: 14,
+    fontFamily: 'SFProDisplay-Bold',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  toggleButtonTextInactive: {
+    color: '#000000',
+  },
+  loginInput: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 18,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    fontSize: 13,
+    fontFamily: 'SFProDisplay-Regular',
+    color: '#000000',
+    marginBottom: 12,
+    width: '100%',
+    height: 56,
+  },
+  passwordContainer: {
+    position: 'relative',
+    marginBottom: 32,
+    width: '100%',
+  },
+  loginPasswordInput: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 18,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    paddingRight: 60,
+    fontSize: 13,
+    fontFamily: 'SFProDisplay-Regular',
+    color: '#000000',
+    width: '100%',
+    height: 56,
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 20,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  passwordToggleIcon: {
+    fontSize: 20,
+  },
+  sendCodeButton: {
+    backgroundColor: '#000000',
+    borderRadius: 18,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 48,
+    width: '100%',
+    height: 56,
+  },
+  sendCodeButtonText: {
+    fontSize: 13,
+    fontFamily: 'SFProDisplay-Bold',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  orDividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 32,
+    width: '100%',
+  },
+  orDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  orDividerText: {
+    marginHorizontal: 16,
+    fontSize: 12,
+    fontFamily: 'SFProDisplay-Regular',
+    color: '#999999',
+  },
+  socialButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  socialButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialButtonIcon: {
+    fontSize: 22,
+    fontFamily: 'SFProDisplay-Bold',
+    color: '#000000',
+  },
+  socialButtonImage: {
+    width: 24,
+    height: 24,
   },
 })
