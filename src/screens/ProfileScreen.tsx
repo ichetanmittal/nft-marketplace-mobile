@@ -214,6 +214,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 40,
     fontSize: 16,
+    fontFamily: "SFProDisplay-Regular",
     color: "#999",
   },
   header: {
@@ -242,6 +243,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "600",
+    fontFamily: "SFProDisplay-Semibold",
     color: "#000",
   },
   profileCard: {
@@ -289,6 +291,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 26,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#000",
     marginRight: 8,
   },
@@ -298,6 +301,7 @@ const styles = StyleSheet.create({
   performanceTag: {
     fontSize: 11,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#FF1493",
     letterSpacing: 0.5,
   },
@@ -315,12 +319,14 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 22,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#000",
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 11,
     fontWeight: "500",
+    fontFamily: "SFProDisplay-Medium",
     color: "#999",
     letterSpacing: 0.5,
   },
@@ -330,12 +336,14 @@ const styles = StyleSheet.create({
   bioTitle: {
     fontSize: 14,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#000",
     marginBottom: 8,
     letterSpacing: 0.5,
   },
   bioText: {
     fontSize: 14,
+    fontFamily: "SFProDisplay-Regular",
     color: "#666",
     lineHeight: 20,
   },
@@ -355,11 +363,11 @@ const styles = StyleSheet.create({
   followButtonText: {
     fontSize: 13,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#000",
     letterSpacing: 0.5,
     zIndex: 1,
   },
-  // Gradients for Follow button
   followGradTR: {
     position: "absolute",
     top: -24,
@@ -390,15 +398,14 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   editionCard: {
-    backgroundColor: "#FFFFFF", // outer white card
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     marginHorizontal: 16,
-    padding: 8, // subtle inner gutter
+    padding: 8,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 24,
-    // soft shadow like the mock
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 8 },
@@ -410,7 +417,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    backgroundColor: "#CFFF93", // softer light green like the mock
+    backgroundColor: "#CFFF93",
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 18,
@@ -433,6 +440,7 @@ const styles = StyleSheet.create({
   editionTitle: {
     fontSize: 14,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#000",
     marginBottom: 4,
     letterSpacing: 0.5,
@@ -440,6 +448,7 @@ const styles = StyleSheet.create({
   editionTime: {
     fontSize: 11,
     fontWeight: "600",
+    fontFamily: "SFProDisplay-Semibold",
     color: "#666",
     letterSpacing: 0.5,
   },
@@ -455,11 +464,11 @@ const styles = StyleSheet.create({
   applyButtonText: {
     fontSize: 14,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#000",
     letterSpacing: 0.5,
     zIndex: 2,
   },
-  // Gradients for Apply button
   applyGradTR: {
     position: "absolute",
     top: -24,
@@ -483,6 +492,7 @@ const styles = StyleSheet.create({
   performanceTitle: {
     fontSize: 20,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#000",
     textAlign: "center",
     marginBottom: 4,
@@ -490,6 +500,7 @@ const styles = StyleSheet.create({
   performanceSubtitle: {
     fontSize: 11,
     fontWeight: "600",
+    fontFamily: "SFProDisplay-Semibold",
     color: "#999",
     textAlign: "center",
     marginBottom: 16,
@@ -525,6 +536,7 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 20,
+    fontFamily: "SFProDisplay-Regular",
   },
   iconDivider: {
     width: 24,
@@ -537,17 +549,20 @@ const styles = StyleSheet.create({
   priceSymbol: {
     fontSize: 18,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#000",
     marginRight: 4,
   },
   priceValue: {
     fontSize: 24,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#000",
   },
   performanceRating: {
     fontSize: 12,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#FF1493",
     marginBottom: 12,
     letterSpacing: 0.5,
@@ -563,6 +578,7 @@ const styles = StyleSheet.create({
   detailsButtonText: {
     fontSize: 13,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#000",
     letterSpacing: 0.5,
   },
@@ -577,6 +593,7 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     fontSize: 14,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     color: "#FFFFFF",
   },
 });

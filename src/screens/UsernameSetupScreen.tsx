@@ -111,13 +111,10 @@ export default function UsernameSetupScreen({
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.title}>Set Up Your Profile</Text>
-          <Text style={styles.subtitle}>
-            Choose a username and profile picture (optional)
-          </Text>
         </View>
 
         <View style={styles.content}>
-          {/* Profile Picture */}
+          {/* Profile Picture with Icon Overlay */}
           <View style={styles.imageContainer}>
             <TouchableOpacity
               style={styles.imagePicker}
@@ -127,213 +124,183 @@ export default function UsernameSetupScreen({
               {imageUri ? (
                 <Image source={{ uri: imageUri }} style={styles.profileImage} />
               ) : (
-                <View style={styles.placeholderImage}>
-                  <Text style={styles.placeholderText}>📷</Text>
-                  <Text style={styles.placeholderLabel}>Add Photo</Text>
-                </View>
+                <View style={styles.placeholderImage} />
               )}
             </TouchableOpacity>
-            {imageUri && (
-              <TouchableOpacity
-                style={styles.changeButton}
-                onPress={handlePickImage}
-                disabled={isUploading}
-              >
-                <Text style={styles.changeButtonText}>Change Photo</Text>
-              </TouchableOpacity>
-            )}
+
+            {/* Icon overlay button - placeholder for PNG icon */}
+            <TouchableOpacity
+              style={styles.iconOverlay}
+              onPress={handlePickImage}
+              disabled={isUploading}
+            >
+              <Image
+                source={require("../../assets/group.png")}
+                style={styles.iconImage}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
           </View>
 
           {/* Username Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Username</Text>
             <TextInput
               style={styles.input}
               value={username}
               onChangeText={setUsername}
-              placeholder="Enter username (3-20 characters)"
+              placeholder="NEWNICKNAME_02"
               placeholderTextColor="#9CA3AF"
               autoCapitalize="none"
               autoCorrect={false}
               maxLength={20}
               editable={!isUploading}
             />
-            <Text style={styles.hint}>
-              {username.length}/20 characters
-            </Text>
           </View>
 
-          {/* Role Badge */}
-          <View style={styles.roleBadge}>
-            <Text style={styles.roleBadgeText}>
-              Role: {role.charAt(0).toUpperCase() + role.slice(1)}
-            </Text>
-          </View>
-        </View>
-
-        {/* Buttons */}
-        <View style={styles.buttons}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={onBack}
-            disabled={isUploading}
-          >
-            <Text style={styles.backButtonText}>Back</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.continueButton,
-              (!isUsernameValid || isUploading) && styles.continueButtonDisabled,
-            ]}
-            onPress={handleContinue}
-            disabled={!isUsernameValid || isUploading}
-          >
-            {isUploading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.continueButtonText}>Continue</Text>
-            )}
-          </TouchableOpacity>
+          {/* Availability Checking */}
+          {username.length > 0 && (
+            <Text style={styles.availabilityText}>AVAILABILITY CHECKING</Text>
+          )}
         </View>
       </ScrollView>
+
+      {/* Bottom Button */}
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[
+            styles.createButton,
+            (!isUsernameValid || isUploading) && styles.createButtonDisabled,
+          ]}
+          onPress={handleContinue}
+          disabled={!isUsernameValid || isUploading}
+        >
+          {isUploading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.createButtonText}>CREATE ACCOUNT</Text>
+          )}
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 120,
   },
   header: {
-    marginBottom: 30,
-    alignItems: 'center',
+    alignItems: "center",
+    marginBottom: 60,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
+    fontSize: 44,
+    lineHeight: 50,
+    color: "#000000",
+    textAlign: "center",
+    fontFamily: "SFProDisplay-Heavy",
   },
   content: {
     flex: 1,
+    alignItems: "center",
   },
   imageContainer: {
-    alignItems: 'center',
-    marginBottom: 30,
+    position: "relative",
+    marginBottom: 80,
   },
   imagePicker: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    marginBottom: 12,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    overflow: "hidden",
   },
   profileImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   placeholderImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#E5E7EB",
   },
-  placeholderText: {
-    fontSize: 40,
-    marginBottom: 4,
+  iconOverlay: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#000000",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  placeholderLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  changeButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  changeButtonText: {
-    color: '#3B82F6',
-    fontSize: 14,
-    fontWeight: '600',
+  iconImage: {
+    width: 40,
+    height: 40,
   },
   inputContainer: {
-    marginBottom: 20,
+    width: "100%",
+    marginBottom: 16,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
+  iconPlaceholder: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  iconText: {
+    color: "#FFFFFF",
+    fontSize: 32,
+    fontFamily: "SFProDisplay-Regular",
   },
   input: {
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    padding: 14,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
     fontSize: 16,
-    color: '#1F2937',
+    color: "#000000",
+    textAlign: "center",
+    fontFamily: "SFProDisplay-Medium",
+    letterSpacing: 0.5,
   },
-  hint: {
+  availabilityText: {
     fontSize: 12,
-    color: '#6B7280',
-    marginTop: 4,
+    color: "#9CA3AF",
+    textAlign: "center",
+    fontFamily: "SFProDisplay-Regular",
+    letterSpacing: 1.5,
   },
-  roleBadge: {
-    backgroundColor: '#EEF2FF',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
+  footer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 22,
+    backgroundColor: "#FFFFFF",
   },
-  roleBadgeText: {
+  createButton: {
+    backgroundColor: "#000000",
+    borderRadius: 16,
+    paddingVertical: 20,
+    alignItems: "center",
+  },
+  createButtonDisabled: {
+    backgroundColor: "#D1D5DB",
+  },
+  createButtonText: {
+    color: "#FFFFFF",
     fontSize: 14,
-    color: '#4F46E5',
-    fontWeight: '600',
+    letterSpacing: 1.5,
+    fontFamily: "SFProDisplay-Heavy",
   },
-  buttons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
-  },
-  backButton: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  continueButton: {
-    flex: 2,
-    backgroundColor: '#3B82F6',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  continueButtonDisabled: {
-    backgroundColor: '#D1D5DB',
-  },
-  continueButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-})
+});

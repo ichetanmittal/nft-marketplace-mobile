@@ -11,6 +11,7 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
+  Image
 } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { UserRole, RoleOption } from '../types/onboarding'
@@ -111,7 +112,11 @@ function RoleCard({ role, onPress, selected }: RoleCardProps) {
       activeOpacity={0.9}
     >
       <View style={styles.roleHeader}>
-        <Text style={[styles.roleIcon, selected ? styles.roleIconAccent : styles.roleIconMuted]}>{role.icon}</Text>
+        <Image
+          source={role.icon}
+          style={styles.roleIcon}
+          resizeMode="contain"
+        />
         <Text
           style={[
             styles.roleTitle,
@@ -130,13 +135,13 @@ function RoleCard({ role, onPress, selected }: RoleCardProps) {
         {role.description.toUpperCase()}
       </Text>
     </TouchableOpacity>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     flexGrow: 1,
@@ -146,22 +151,22 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 28,
-    alignItems: 'center',
+    alignItems: "center",
   },
   titleWrap: {
-    position: 'relative',
+    position: "relative",
   },
   title: {
     fontSize: 48,
     lineHeight: 52,
-    fontWeight: '900',
-    color: '#0B0B0B',
-    textAlign: 'center',
+    fontFamily: "SFProDisplay-Heavy",
+    color: "#0B0B0B",
+    textAlign: "center",
   },
   rolesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     marginBottom: 28,
   },
   roleCard: {
@@ -170,59 +175,53 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   roleCardHalf: {
-    width: '48%',
+    width: "48%",
     minHeight: 150,
   },
   roleCardFull: {
-    width: '100%',
+    width: "100%",
     minHeight: 150,
   },
   roleCardLight: {
-    backgroundColor: '#F2F3F5',
+    backgroundColor: "#F2F3F5",
   },
   roleCardSelected: {
-    backgroundColor: '#0A0A0A',
+    backgroundColor: "#0A0A0A",
   },
   roleHeader: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
+    flexDirection: "column",
+    alignItems: "flex-start",
     gap: 6,
     marginBottom: 10,
   },
   roleIcon: {
-    fontSize: 26,
-  },
-  roleIconMuted: {
-    color: '#9CA3AF',
-  },
-  roleIconAccent: {
-    color: '#F472B6',
+    width: 32,
+    height: 32,
   },
   roleTitle: {
     fontSize: 20,
-    fontWeight: '800',
     letterSpacing: 1,
-    textTransform: 'uppercase',
-    fontFamily: 'monospace',
+    textTransform: "uppercase",
+    fontFamily: "SFProDisplay-Heavy",
   },
   roleTitleLight: {
-    color: '#0B0B0B',
+    color: "#0B0B0B",
   },
   roleTitleDark: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   roleDescription: {
     fontSize: 13,
     lineHeight: 20,
     letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    fontFamily: 'monospace',
+    textTransform: "uppercase",
+    fontFamily: "SFProDisplay-Medium",
   },
   roleDescriptionLight: {
-    color: '#81858D',
+    color: "#81858D",
   },
   roleDescriptionDark: {
-    color: '#BDBDBD',
+    color: "#BDBDBD",
   },
   footer: {
     paddingHorizontal: 24,
@@ -230,24 +229,24 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   nextButton: {
-    backgroundColor: '#111111',
+    backgroundColor: "#111111",
     borderRadius: 18,
     paddingVertical: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   nextButtonDisabled: {
-    backgroundColor: '#D1D5DB',
+    backgroundColor: "#D1D5DB",
   },
   nextButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
+    color: "#FFFFFF",
+    fontSize: 14,
     letterSpacing: 2,
-    textTransform: 'uppercase',
-    fontFamily: 'monospace',
+    textTransform: "uppercase",
+    fontFamily: "SFProDisplay-Heavy",
   },
   nextButtonTextDisabled: {
-    color: '#F9FAFB',
+    color: "#F9FAFB",
     opacity: 0.8,
   },
-})
+});

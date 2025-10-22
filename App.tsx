@@ -6,6 +6,7 @@
 import 'react-native-get-random-values'
 import { Buffer } from 'buffer'
 import process from 'process'
+import * as Font from "expo-font";
 
 global.Buffer = Buffer
 global.process = process
@@ -56,7 +57,22 @@ function MainApp() {
   const [isLoading, setIsLoading] = useState(true)
   const [onboardingCompleted, setOnboardingCompleted] = useState(false)
   const { wallets, create: createWallet } = useEmbeddedEthereumWallet()
+  const [fontsLoaded, setFontsLoaded] = useState(false);
 
+  useEffect(() => {
+    async function loadFonts() {
+      await Font.loadAsync({
+        "SFProDisplay-Regular": require("./assets/fonts/SFProDisplay-Regular.otf"),
+        "SFProDisplay-Medium": require("./assets/fonts/SFProDisplay-Medium.otf"),
+        "SFProDisplay-Semibold": require("./assets/fonts/SFProDisplay-Semibold.otf"),
+        "SFProDisplay-Bold": require("./assets/fonts/SFProDisplay-Bold.otf"),
+        "SFProDisplay-Heavy": require("./assets/fonts/SFProDisplay-Heavy.otf"),
+      });
+      setFontsLoaded(true);
+    }
+    loadFonts();
+  }, []);
+  
   // User is authenticated if user object exists
   const authenticated = user !== null
 
@@ -93,6 +109,9 @@ function MainApp() {
   if (!onboardingCompleted) {
     return <OnboardingFlow user={user} wallets={wallets} createWallet={createWallet} onComplete={() => setOnboardingCompleted(true)} />
   }
+
+  // Fonts not loaded
+  if (!fontsLoaded) return null;
 
   // Authenticated and onboarded - show main app
   return <MainScreen user={user} onLogout={logout} />

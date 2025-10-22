@@ -240,6 +240,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32,
     fontWeight: "800",
+    fontFamily: "SFProDisplay-Heavy",
     color: "#0F0F0F",
     textAlign: "center",
   },
@@ -305,12 +306,14 @@ const styles = StyleSheet.create({
   innerLabel: {
     color: "#98A2B3",
     fontSize: 12,
+    fontFamily: "SFProDisplay-Semibold",
     letterSpacing: 1,
   },
   balanceText: {
     color: "#FFFFFF",
     fontSize: 42,
     fontWeight: "800",
+    fontFamily: "SFProDisplay-Heavy",
   },
   userRow: {
     flexDirection: "row",
@@ -328,7 +331,7 @@ const styles = StyleSheet.create({
   },
   usernameText: {
     color: "#9CA3AF",
-    fontFamily: "monospace",
+    fontFamily: "SFProDisplay-Medium",
     letterSpacing: 1,
   },
   sliderTrack: {
@@ -374,6 +377,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
+    fontFamily: "SFProDisplay-Bold",
     letterSpacing: 1.6,
   },
   bottomWrap: {
@@ -384,7 +388,7 @@ const styles = StyleSheet.create({
   },
   skipText: {
     color: "#9CA3AF",
-    fontFamily: "monospace",
+    fontFamily: "SFProDisplay-Medium",
     letterSpacing: 1.2,
     textAlign: "center",
   },

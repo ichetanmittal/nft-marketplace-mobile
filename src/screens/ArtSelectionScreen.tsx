@@ -429,6 +429,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32,
     fontWeight: "800",
+    fontFamily: "SFProDisplay-Heavy",
     color: "#0F0F0F",
     textAlign: "center",
   },
@@ -455,6 +456,7 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     marginTop: 8,
     textAlign: "center",
+    fontFamily: "SFProDisplay-Regular",
   },
   cardsContainer: {
     flex: 1,
@@ -506,11 +508,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#0F0F0F",
     marginBottom: 4,
+    fontFamily: "SFProDisplay-Bold",
   },
   categoryCount: {
     fontSize: 12,
     color: "#9CA3AF",
-    fontFamily: "monospace",
+    fontFamily: "SFProDisplay-Medium",
     letterSpacing: 0.8,
   },
   bottomWrap: {
@@ -567,5 +570,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     letterSpacing: 1.6,
+    fontFamily: "SFProDisplay-Bold",
   },
 });
