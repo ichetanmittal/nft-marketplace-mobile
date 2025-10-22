@@ -29,6 +29,8 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "scheme": "rwamarketplace",
+    "deepLinking": true,
     "plugins": [
       [
         "expo-build-properties",
@@ -43,13 +45,12 @@
       ],
       "expo-font"
     ],
-    "scheme": "rwamarketplace",
     "extra": {
       "eas": {
         "projectId": "your-project-id"
       },
-      "privyAppId": "cmgmjginy01t3jo0c2ijhylv8",
-      "privyClientId": "client-WY6RbxwyBmNUkbJnxm7jq9qpgRk6vXyN3NwBN94JCAuxj"
+      "privyAppId": "cmgkp5stj00n9lb0c3xcazezg",
+      "privyClientId": "client-WY6RbZy9K7X6WakSVjqachQDU5NSMVR6r9FnisuKWQDJv"
     }
   }
 }

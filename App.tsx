@@ -15,7 +15,7 @@ import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, Alert } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { PrivyProvider, usePrivy, useLoginWithEmail, useEmbeddedEthereumWallet } from '@privy-io/expo'
+import { PrivyProvider, usePrivy, useLoginWithEmail, useEmbeddedEthereumWallet, useLoginWithOAuth, useLoginWithSMS, useLoginWithSiwe } from '@privy-io/expo'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Constants from 'expo-constants'
 
@@ -120,35 +120,61 @@ function MainApp() {
 // ============================================================================
 // Login Screen
 // ============================================================================
+//
+// Authentication Methods:
+// 1. Email: OTP sent to email (enabled by default in Privy)
+// 2. Google OAuth: Requires Google OAuth enabled in Privy Dashboard
+//    - Check: Privy Dashboard → Auth Methods → Socials → Google toggle
+//    - Configure redirect URIs for your Expo app
+// 3. SMS: OTP sent to phone (requires SMS method enabled in Privy)
+// 4. Wallet: Sign In With Ethereum (SIWE) - for crypto wallet login
+//
+
+type AuthMethod = 'email' | 'google' | 'sms' | 'wallet'
 
 function LoginScreen() {
+  const [authMethod, setAuthMethod] = useState<AuthMethod>('email')
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [showCodeInput, setShowCodeInput] = useState(false)
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [smsCode, setSmsCode] = useState('')
+  const [showSmsCodeInput, setShowSmsCodeInput] = useState(false)
 
-  const { sendCode, loginWithCode, state } = useLoginWithEmail({
+  // Email authentication
+  const { sendCode, loginWithCode, state: emailState } = useLoginWithEmail({
     onError: (error) => {
-      Alert.alert('Authentication Error', error.message)
+      Alert.alert('Email Authentication Error', error.message)
     },
     onSendCodeSuccess: () => {
       setShowCodeInput(true)
       Alert.alert('Code Sent', 'Please check your email for the verification code.')
     },
     onLoginSuccess: (user) => {
-      console.log('Login successful:', user)
+      console.log('Email login successful:', user)
     }
   })
 
+  // Google OAuth authentication
+  const { login: loginWithGoogle, state: googleState } = useLoginWithOAuth()
+
+  // SMS authentication
+  const { sendCode: sendSmsCode, loginWithCode: loginWithSmsCode, state: smsState } = useLoginWithSMS()
+
+  // Wallet authentication (Sign In With Ethereum)
+  const { loginWithSiwe, state: walletState } = useLoginWithSiwe()
+
+  // Email handlers
   const handleSendCode = async () => {
     if (!email.trim()) {
       Alert.alert('Error', 'Please enter your email address')
       return
     }
-
     try {
       await sendCode({ email: email.trim() })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending code:', error)
+      Alert.alert('Error', error?.message || 'Failed to send verification code. Please try again.')
     }
   }
 
@@ -157,82 +183,316 @@ function LoginScreen() {
       Alert.alert('Error', 'Please enter the verification code')
       return
     }
-
     try {
       await loginWithCode({ code: code.trim(), email: email.trim() })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error logging in:', error)
+      Alert.alert('Error', error?.message || 'Failed to verify code. Please try again.')
     }
   }
 
-  const isLoading = state.status === 'sending-code' || state.status === 'submitting-code'
+  // SMS handlers
+  const handleSendSmsCode = async () => {
+    if (!phoneNumber.trim()) {
+      Alert.alert('Error', 'Please enter your phone number')
+      return
+    }
+    try {
+      await sendSmsCode({ phone: phoneNumber.trim() })
+      setShowSmsCodeInput(true)
+      Alert.alert('Code Sent', 'Please check your phone for the SMS verification code.')
+    } catch (error) {
+      console.error('Error sending SMS code:', error)
+      Alert.alert('Error', 'Failed to send SMS code. Please try again.')
+    }
+  }
+
+  const handleSmsLogin = async () => {
+    if (!smsCode.trim()) {
+      Alert.alert('Error', 'Please enter the SMS code')
+      return
+    }
+    try {
+      await loginWithSmsCode({ code: smsCode.trim(), phone: phoneNumber.trim() })
+    } catch (error) {
+      console.error('Error logging in with SMS:', error)
+      Alert.alert('Error', 'Failed to verify SMS code. Please try again.')
+    }
+  }
+
+  // Google handler
+  const handleGoogleLogin = async () => {
+    try {
+      console.log('Attempting Google login with provider: google')
+      const result = await loginWithGoogle({ provider: 'google' })
+      console.log('Google login successful:', result)
+    } catch (error: any) {
+      console.error('Error logging in with Google:', error)
+      console.error('Error details:', {
+        message: error?.message,
+        code: error?.code,
+        name: error?.name,
+      })
+      const errorMessage = error?.message || 'Failed to login with Google. Make sure Google OAuth is enabled in Privy dashboard and redirect URIs are configured.'
+      Alert.alert('Google Login Error', errorMessage)
+    }
+  }
+
+  // Wallet handler (Sign In With Ethereum)
+  const handleWalletLogin = async () => {
+    try {
+      // SIWE (Sign In With Ethereum) flow:
+      // 1. Get the user's wallet address
+      // 2. Generate SIWE message with their wallet
+      // 3. Sign the message with their wallet
+      // 4. Call loginWithSiwe with signature and message
+      Alert.alert('Wallet Login', 'Wallet integration requires signing with your crypto wallet. Coming soon!')
+    } catch (error) {
+      console.error('Error logging in with wallet:', error)
+      Alert.alert('Error', 'Failed to initiate wallet login.')
+    }
+  }
+
+  const isEmailLoading = emailState.status === 'sending-code' || emailState.status === 'submitting-code'
+  const isSmsLoading = smsState.status === 'sending-code' || smsState.status === 'submitting-code'
+  const isGoogleLoading = googleState.status === 'loading'
+  const isWalletLoading = walletState.status === 'generating-message' || walletState.status === 'awaiting-signature'
 
   return (
     <View style={styles.loginContainer}>
       <View style={styles.loginContent}>
         <Text style={styles.loginTitle}>Welcome to RWA Marketplace</Text>
-        <Text style={styles.loginSubtitle}>
-          {showCodeInput ? 'Enter the verification code' : 'Sign in with your email'}
-        </Text>
+        <Text style={styles.loginSubtitle}>Choose your sign-in method</Text>
 
-        {!showCodeInput ? (
+        {/* Auth Method Tabs */}
+        <View style={styles.authMethodTabs}>
+          <TouchableOpacity
+            style={[styles.authMethodTab, authMethod === 'email' && styles.authMethodTabActive]}
+            onPress={() => {
+              setAuthMethod('email')
+              setShowCodeInput(false)
+              setSmsCode('')
+              setShowSmsCodeInput(false)
+            }}
+          >
+            <Text style={[styles.authMethodTabText, authMethod === 'email' && styles.authMethodTabTextActive]}>
+              Email
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.authMethodTab, authMethod === 'google' && styles.authMethodTabActive]}
+            onPress={() => setAuthMethod('google')}
+          >
+            <Text style={[styles.authMethodTabText, authMethod === 'google' && styles.authMethodTabTextActive]}>
+              Google
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.authMethodTab, authMethod === 'sms' && styles.authMethodTabActive]}
+            onPress={() => {
+              setAuthMethod('sms')
+              setShowCodeInput(false)
+              setCode('')
+              setShowSmsCodeInput(false)
+            }}
+          >
+            <Text style={[styles.authMethodTabText, authMethod === 'sms' && styles.authMethodTabTextActive]}>
+              SMS
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.authMethodTab, authMethod === 'wallet' && styles.authMethodTabActive]}
+            onPress={() => setAuthMethod('wallet')}
+          >
+            <Text style={[styles.authMethodTabText, authMethod === 'wallet' && styles.authMethodTabTextActive]}>
+              Wallet
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Email Authentication */}
+        {authMethod === 'email' && (
           <>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              editable={!isLoading}
-            />
+            <Text style={styles.methodSubtitle}>
+              {showCodeInput ? 'Enter the verification code' : 'Sign in with your email'}
+            </Text>
+            {!showCodeInput ? (
+              <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your email"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  editable={!isEmailLoading}
+                />
 
+                <TouchableOpacity
+                  style={[styles.loginButton, isEmailLoading && styles.loginButtonDisabled]}
+                  onPress={handleSendCode}
+                  disabled={isEmailLoading}
+                >
+                  {isEmailLoading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.loginButtonText}>Send Code</Text>
+                  )}
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter verification code"
+                  value={code}
+                  onChangeText={setCode}
+                  keyboardType="number-pad"
+                  autoComplete="one-time-code"
+                  editable={!isEmailLoading}
+                />
+
+                <TouchableOpacity
+                  style={[styles.loginButton, isEmailLoading && styles.loginButtonDisabled]}
+                  onPress={handleLogin}
+                  disabled={isEmailLoading}
+                >
+                  {isEmailLoading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.loginButtonText}>Verify & Sign In</Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.backButton}
+                  onPress={() => {
+                    setShowCodeInput(false)
+                    setCode('')
+                  }}
+                  disabled={isEmailLoading}
+                >
+                  <Text style={styles.backButtonText}>Use different email</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </>
+        )}
+
+        {/* Google Authentication */}
+        {authMethod === 'google' && (
+          <>
+            <Text style={styles.methodSubtitle}>
+              Sign in with your Google account
+            </Text>
             <TouchableOpacity
-              style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
-              onPress={handleSendCode}
-              disabled={isLoading}
+              style={[styles.googleButton, isGoogleLoading && styles.loginButtonDisabled]}
+              onPress={handleGoogleLogin}
+              disabled={isGoogleLoading}
             >
-              {isLoading ? (
+              {isGoogleLoading ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text style={styles.loginButtonText}>Send Code</Text>
+                <>
+                  <Text style={styles.googleButtonIcon}>🔍</Text>
+                  <Text style={styles.googleButtonText}>Continue with Google</Text>
+                </>
               )}
             </TouchableOpacity>
           </>
-        ) : (
-          <>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter verification code"
-              value={code}
-              onChangeText={setCode}
-              keyboardType="number-pad"
-              autoComplete="one-time-code"
-              editable={!isLoading}
-            />
+        )}
 
+        {/* SMS Authentication */}
+        {authMethod === 'sms' && (
+          <>
+            <Text style={styles.methodSubtitle}>
+              {showSmsCodeInput ? 'Enter the SMS code' : 'Sign in with your phone number'}
+            </Text>
+            {!showSmsCodeInput ? (
+              <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your phone number"
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  keyboardType="phone-pad"
+                  editable={!isSmsLoading}
+                />
+
+                <TouchableOpacity
+                  style={[styles.loginButton, isSmsLoading && styles.loginButtonDisabled]}
+                  onPress={handleSendSmsCode}
+                  disabled={isSmsLoading}
+                >
+                  {isSmsLoading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.loginButtonText}>Send Code</Text>
+                  )}
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter SMS code"
+                  value={smsCode}
+                  onChangeText={setSmsCode}
+                  keyboardType="number-pad"
+                  autoComplete="one-time-code"
+                  editable={!isSmsLoading}
+                />
+
+                <TouchableOpacity
+                  style={[styles.loginButton, isSmsLoading && styles.loginButtonDisabled]}
+                  onPress={handleSmsLogin}
+                  disabled={isSmsLoading}
+                >
+                  {isSmsLoading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.loginButtonText}>Verify & Sign In</Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.backButton}
+                  onPress={() => {
+                    setShowSmsCodeInput(false)
+                    setSmsCode('')
+                  }}
+                  disabled={isSmsLoading}
+                >
+                  <Text style={styles.backButtonText}>Use different phone</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </>
+        )}
+
+        {/* Wallet Authentication */}
+        {authMethod === 'wallet' && (
+          <>
+            <Text style={styles.methodSubtitle}>
+              Sign in with your crypto wallet
+            </Text>
             <TouchableOpacity
-              style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
-              onPress={handleLogin}
-              disabled={isLoading}
+              style={[styles.walletButton, isWalletLoading && styles.loginButtonDisabled]}
+              onPress={handleWalletLogin}
+              disabled={isWalletLoading}
             >
-              {isLoading ? (
+              {isWalletLoading ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text style={styles.loginButtonText}>Verify & Sign In</Text>
+                <>
+                  <Text style={styles.walletButtonIcon}>💼</Text>
+                  <Text style={styles.walletButtonText}>Connect Wallet</Text>
+                </>
               )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => {
-                setShowCodeInput(false)
-                setCode('')
-              }}
-              disabled={isLoading}
-            >
-              <Text style={styles.backButtonText}>Use different email</Text>
             </TouchableOpacity>
           </>
         )}
@@ -741,5 +1001,83 @@ const styles = StyleSheet.create({
   },
   navIconActive: {
     color: '#FFFFFF',
+  },
+  // Auth method tabs styles
+  authMethodTabs: {
+    flexDirection: 'row',
+    width: '100%',
+    marginBottom: 32,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  authMethodTab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+  },
+  authMethodTabActive: {
+    borderBottomColor: '#3B82F6',
+  },
+  authMethodTabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9CA3AF',
+  },
+  authMethodTabTextActive: {
+    color: '#3B82F6',
+  },
+  methodSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  // Google button styles
+  googleButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: '100%',
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  googleButtonIcon: {
+    fontSize: 24,
+  },
+  googleButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    textAlign: 'center',
+  },
+  // Wallet button styles
+  walletButton: {
+    backgroundColor: '#7C3AED',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: '100%',
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  walletButtonIcon: {
+    fontSize: 24,
+  },
+  walletButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
   },
 })
