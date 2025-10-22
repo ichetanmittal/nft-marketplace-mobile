@@ -22,10 +22,12 @@ import Constants from 'expo-constants'
 import RoleSelectionScreen from './src/screens/RoleSelectionScreen'
 import UsernameSetupScreen from './src/screens/UsernameSetupScreen'
 import WalletDisplayScreen from './src/screens/WalletDisplayScreen'
+import ProfileScreen from './src/screens/ProfileScreen'
 
 // Types
 import type { UserRole, UserProfile } from './src/types/onboarding'
 import FundingScreen from '@/screens/FundingScreen'
+import ArtSelectionScreen from '@/screens/ArtSelectionScreen'
 
 const Stack = createNativeStackNavigator()
 
@@ -232,7 +234,7 @@ interface OnboardingFlowProps {
 }
 
 function OnboardingFlow({ user, wallets, createWallet, onComplete }: OnboardingFlowProps) {
-  const [currentStep, setCurrentStep] = useState<'role' | 'username' | 'wallet' | 'funding'>('role')
+  const [currentStep, setCurrentStep] = useState<'role' | 'username' | 'wallet' | 'funding' | 'art'>('role')
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null)
   const [username, setUsername] = useState('')
   const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>()
@@ -332,13 +334,22 @@ function OnboardingFlow({ user, wallets, createWallet, onComplete }: OnboardingF
   if (currentStep === "funding" && username) {
     if(username) {
         return (
-        <FundingScreen
-          username={username}
-          onTopUp={handleOnboardingComplete}
-          onSkip={handleOnboardingComplete}
-        />
-      );
+          <FundingScreen
+            username={username}
+            onTopUp={() => setCurrentStep("art")}
+            onSkip={() => setCurrentStep("art")}
+          />
+        );
     }
+  }
+
+  if (currentStep === "art") {
+    return (
+      <ArtSelectionScreen
+        onComplete={handleOnboardingComplete}
+        onBack={() => setCurrentStep("funding")}
+      />
+    );
   }
 
   return (
@@ -360,6 +371,7 @@ interface MainScreenProps {
 
 function MainScreen({ user, onLogout }: MainScreenProps) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [activeTab, setActiveTab] = useState<'home' | 'profile' | 'transactions'>('home')
 
   useEffect(() => {
     loadProfile()
@@ -386,31 +398,109 @@ function MainScreen({ user, onLogout }: MainScreenProps) {
     }
   }
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'home':
+        return <HomeTab profile={profile} onLogout={handleLogout} />
+      case 'profile':
+        return <ProfileTab profile={profile} onLogout={handleLogout} onBack={() => setActiveTab('home')}/>
+      case 'transactions':
+        return <TransactionsTab />
+      default:
+        return null
+    }
+  }
+
   return (
     <View style={styles.mainContainer}>
       <View style={styles.mainContent}>
-        <Text style={styles.mainTitle}>Welcome back!</Text>
-
-        {profile && (
-          <View style={styles.profileCard}>
-            <Text style={styles.profileLabel}>Username</Text>
-            <Text style={styles.profileValue}>@{profile.username}</Text>
-
-            <Text style={[styles.profileLabel, { marginTop: 16 }]}>Role</Text>
-            <Text style={styles.profileValue}>
-              {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
-            </Text>
-
-            <Text style={[styles.profileLabel, { marginTop: 16 }]}>Wallet Address</Text>
-            <Text style={styles.profileValue}>
-              {profile.walletAddress.slice(0, 6)}...{profile.walletAddress.slice(-4)}
-            </Text>
-          </View>
-        )}
-
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
+        {renderContent()}
+      </View>
+      
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNav}>
+        {/* Left Circular Button - Home */}
+        <TouchableOpacity
+          style={[styles.circularButton, activeTab === 'home' && styles.circularButtonActive]}
+          onPress={() => setActiveTab('home')}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.navIconText, activeTab === 'home' && styles.navIconActive]}>⌂</Text>
         </TouchableOpacity>
+
+        {/* Middle Cylindrical Button - Transactions */}
+        <TouchableOpacity
+          style={[styles.cylindricalButton, activeTab === 'transactions' && styles.cylindricalButtonActive]}
+          onPress={() => setActiveTab('transactions')}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.navIconText, activeTab === 'transactions' && styles.navIconActive]}>$</Text>
+          <Text style={[styles.navNumberText, activeTab === 'transactions' && styles.navIconActive]}>199</Text>
+        </TouchableOpacity>
+
+        {/* Right Circular Button - Profile */}
+        <TouchableOpacity
+          style={[styles.circularButton, activeTab === 'profile' && styles.circularButtonActive]}
+          onPress={() => setActiveTab('profile')}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.navIconText, activeTab === 'profile' && styles.navIconActive]}>☰</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  )
+}
+
+// ============================================================================
+// Tab Components
+// ============================================================================
+
+interface TabProps {
+  profile: UserProfile | null
+  onLogout?: () => void
+  onBack?: () => void
+}
+
+function HomeTab({ profile }: TabProps) {
+  return (
+    <View style={styles.tabContainer}>
+      <Text style={styles.mainTitle}>Welcome back!</Text>
+      {profile && (
+        <View style={styles.profileCard}>
+          <Text style={styles.profileLabel}>Username</Text>
+          <Text style={styles.profileValue}>@{profile.username}</Text>
+
+          <Text style={[styles.profileLabel, { marginTop: 16 }]}>Role</Text>
+          <Text style={styles.profileValue}>
+            {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
+          </Text>
+
+          <Text style={[styles.profileLabel, { marginTop: 16 }]}>Wallet Address</Text>
+          <Text style={styles.profileValue}>
+            {profile.walletAddress.slice(0, 6)}...{profile.walletAddress.slice(-4)}
+          </Text>
+        </View>
+      )}
+    </View>
+  )
+}
+
+function ProfileTab({ profile, onLogout, onBack }: TabProps) {
+  return (
+    <ProfileScreen
+      profile={profile}
+      onLogout={onLogout}
+      onBack={onBack}
+    />
+  );
+}
+
+function TransactionsTab() {
+  return (
+    <View style={styles.tabContainer}>
+      <Text style={styles.mainTitle}>Transactions</Text>
+      <View style={styles.emptyState}>
+        <Text style={styles.emptyStateText}>No transactions yet</Text>
       </View>
     </View>
   )
@@ -503,8 +593,6 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'center',
   },
   mainTitle: {
     fontSize: 28,
@@ -539,5 +627,100 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     textAlign: 'center',
+  },
+  // Tab styles
+  tabContainer: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#9CA3AF',
+  },
+  // Bottom Navigation styles
+  bottomNav: {
+    position: 'absolute',
+    bottom: 50,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  // Circular buttons (left and right)
+  circularButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#F5F5F5',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 16,
+  },
+  circularButtonActive: {
+    backgroundColor: '#0A0A0A',
+    borderColor: '#0A0A0A',
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  // Cylindrical button (middle)
+  cylindricalButton: {
+    paddingHorizontal: 18,
+    height: 64,
+    paddingVertical: 12,
+    borderRadius: 32,
+    backgroundColor: '#F5F5F5',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 16,
+    minWidth: 120,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  cylindricalButtonActive: {
+    backgroundColor: '#0A0A0A',
+    borderColor: '#0A0A0A',
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  navIconText: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#000',
+  },
+  navNumberText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#000',
+  },
+  navIconActive: {
+    color: '#FFFFFF',
   },
 })
