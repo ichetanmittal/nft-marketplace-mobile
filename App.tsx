@@ -29,6 +29,7 @@ import ProfileScreen from './src/screens/ProfileScreen'
 import type { UserRole, UserProfile } from './src/types/onboarding'
 import FundingScreen from '@/screens/FundingScreen'
 import ArtSelectionScreen from '@/screens/ArtSelectionScreen'
+import HomeScreen from '@/screens/HomeScreen';
 
 const Stack = createNativeStackNavigator()
 
@@ -679,25 +680,7 @@ interface TabProps {
 
 function HomeTab({ profile }: TabProps) {
   return (
-    <View style={styles.tabContainer}>
-      <Text style={styles.mainTitle}>Welcome back!</Text>
-      {profile && (
-        <View style={styles.profileCard}>
-          <Text style={styles.profileLabel}>Username</Text>
-          <Text style={styles.profileValue}>@{profile.username}</Text>
-
-          <Text style={[styles.profileLabel, { marginTop: 16 }]}>Role</Text>
-          <Text style={styles.profileValue}>
-            {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
-          </Text>
-
-          <Text style={[styles.profileLabel, { marginTop: 16 }]}>Wallet Address</Text>
-          <Text style={styles.profileValue}>
-            {profile.walletAddress.slice(0, 6)}...{profile.walletAddress.slice(-4)}
-          </Text>
-        </View>
-      )}
-    </View>
+    <HomeScreen />
   )
 }
 
