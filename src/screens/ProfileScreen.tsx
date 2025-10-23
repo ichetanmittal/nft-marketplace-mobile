@@ -176,22 +176,6 @@ export default function ProfileScreen({
         </TouchableOpacity>
       </View>
 
-      {/* Performance Prediction */}
-      <View style={styles.performanceSection}>
-        <Text style={styles.performanceTitle}>Performance Prediction</Text>
-        <Text style={styles.performanceSubtitle}>BY 120 WORKS</Text>
-
-        <View style={styles.performanceCard}>
-          <View style={styles.performanceIcons}>
-            <Text style={styles.iconText}>Random things here</Text>
-          </View>
-          <Text style={styles.performanceRating}>** GOOD</Text>
-          <TouchableOpacity style={styles.detailsButton}>
-            <Text style={styles.detailsButtonText}>DETAILS</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
       {/* Logout Button (if onLogout is provided) */}
       {onLogout && (
         <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
