@@ -16,9 +16,11 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput,
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { PrivyProvider, usePrivy, useLoginWithEmail, useEmbeddedEthereumWallet, useLoginWithOAuth, useLoginWithSiwe } from '@privy-io/expo'
+import { PrivyElements } from '@privy-io/expo/ui'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Constants from 'expo-constants'
 import { LinearGradient } from 'expo-linear-gradient'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 
 // Screens
 import RoleSelectionScreen from './src/screens/RoleSelectionScreen'
@@ -46,11 +48,14 @@ const STORAGE_KEYS = {
 
 export default function App() {
   return (
-    <PrivyProvider appId={PRIVY_APP_ID} clientId={PRIVY_CLIENT_ID}>
-      <NavigationContainer>
-        <MainApp />
-      </NavigationContainer>
-    </PrivyProvider>
+    <SafeAreaProvider>
+      <PrivyProvider appId={PRIVY_APP_ID} clientId={PRIVY_CLIENT_ID}>
+        <PrivyElements />
+        <NavigationContainer>
+          <MainApp />
+        </NavigationContainer>
+      </PrivyProvider>
+    </SafeAreaProvider>
   )
 }
 

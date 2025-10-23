@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  SafeAreaView,
   View,
   Text,
   TouchableOpacity,
@@ -8,8 +7,13 @@ import {
   Animated,
   PanResponder,
   LayoutChangeEvent,
+  ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFundWallet } from "@privy-io/expo/ui";
+import { usePrivy } from "@privy-io/expo";
+import { base } from "viem/chains";
 
 interface FundingScreenProps {
   username: string;
@@ -25,6 +29,12 @@ export default function FundingScreen({
   onSkip,
 }: FundingScreenProps) {
   const [balance, setBalance] = React.useState<string>("00.00");
+  const [isFunding, setIsFunding] = React.useState(false);
+
+  // Get user wallet address from Privy
+  const { user } = usePrivy();
+  const { fundWallet } = useFundWallet();
+
   // Slider state
   const KNOB = 64;
   const PADDING = 10;
@@ -33,10 +43,49 @@ export default function FundingScreen({
   const lastXRef = React.useRef(0); // track latest value during move
   const maxXRef = React.useRef(1); // use ref instead of state to avoid stale closures
 
-  // Handler to run on full slide
-  const onSlideComplete = React.useCallback(() => {
-    onTopUp && onTopUp();
-  }, [onTopUp]);
+  // Handler to run on full slide - initiates fund wallet flow
+  const onSlideComplete = React.useCallback(async () => {
+    if (!user?.linked_accounts) {
+      console.error('No wallet address found');
+      onTopUp && onTopUp();
+      return;
+    }
+
+    // Get the first embedded wallet address (EVM)
+    const walletAddress = user.linked_accounts
+      .filter((acc: any) => acc.type === 'wallet' && acc.address)
+      .map((acc: any) => acc.address)[0];
+
+    if (!walletAddress) {
+      console.error('No EVM wallet found');
+      onTopUp && onTopUp();
+      return;
+    }
+
+    try {
+      setIsFunding(true);
+      console.log('Opening fund wallet for:', walletAddress);
+
+      // Open Privy fund wallet UI with configuration
+      // React Native supports: card (Moonpay/Coinbase) and exchange transfers
+      // User can select between payment methods - no defaultPaymentMethod to show all options
+      await fundWallet({
+        address: walletAddress,
+        chain: base,
+        asset: 'native-currency', // Fund with ETH/native currency
+        // Not setting defaultPaymentMethod allows user to choose between:
+        // - Card payment (Moonpay or Coinbase)
+        // - Exchange transfer (Coinbase)
+      });
+
+      onTopUp && onTopUp();
+    } catch (error) {
+      console.error('Fund wallet error:', error);
+      onTopUp && onTopUp();
+    } finally {
+      setIsFunding(false);
+    }
+  }, [user, fundWallet, onTopUp]);
 
   const onTrackLayout = (e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width;
@@ -156,9 +205,13 @@ export default function FundingScreen({
         {/* Bottom (CTA + skip) */}
         <View style={styles.bottomWrap}>
           <View
-            style={styles.sliderTrack}
+            style={[
+              styles.sliderTrack,
+              { opacity: isFunding ? 0.6 : 1 }
+            ]}
             onLayout={onTrackLayout}
             {...panResponder.panHandlers}
+            pointerEvents={isFunding ? 'none' : 'auto'}
           >
             <Animated.Text style={[styles.ctaLabel, { opacity: labelOpacity }]}>
               TOP UP WALLET
@@ -167,7 +220,11 @@ export default function FundingScreen({
               style={[styles.ctaKnob, { transform: [{ translateX }] }]}
               pointerEvents="none"
             >
-              <Text style={styles.arrow}>→</Text>
+              {isFunding ? (
+                <ActivityIndicator color="#111111" size="small" />
+              ) : (
+                <Text style={styles.arrow}>→</Text>
+              )}
             </Animated.View>
           </View>
 
