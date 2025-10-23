@@ -257,9 +257,14 @@ function LoginScreen() {
         
         <View style={styles.loginContent}>
           {/* Signup/Login Header */}
-          <View style={styles.loginHeaderContainer}>
+          <LinearGradient
+            colors={['#F0F0F0', '#000000']}
+            start={{ x: 4, y: 0 }}
+            end={{ x: 0, y: 4 }}
+            style={styles.loginHeaderContainer}
+          >
             <Text style={styles.loginHeaderText}>SIGNUP/LOGIN</Text>
-          </View>
+          </LinearGradient>
 
           {/* Email Input */}
           {!showCodeInput ? (
@@ -277,7 +282,7 @@ function LoginScreen() {
               />
 
               {/* Password Input */}
-              <View style={styles.passwordContainer}>
+              {/* <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.loginPasswordInput}
                   placeholder="PASSWORD"
@@ -297,7 +302,7 @@ function LoginScreen() {
                     {isPasswordVisible ? '👁️' : '👁️‍🗨️'}
                   </Text>
                 </TouchableOpacity>
-              </View>
+              </View> */}
 
               {/* Send Code Button */}
               <TouchableOpacity
@@ -594,42 +599,71 @@ function MainScreen({ user, onLogout }: MainScreenProps) {
 
   return (
     <View style={styles.mainContainer}>
-      <View style={styles.mainContent}>
-        {renderContent()}
-      </View>
-      
+      <View style={styles.mainContent}>{renderContent()}</View>
+
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
         {/* Left Circular Button - Home */}
         <TouchableOpacity
-          style={[styles.circularButton, activeTab === 'home' && styles.circularButtonActive]}
-          onPress={() => setActiveTab('home')}
+          style={[
+            styles.circularButton,
+            activeTab === "home" && styles.circularButtonActive,
+          ]}
+          onPress={() => setActiveTab("home")}
           activeOpacity={0.8}
         >
-          <Text style={[styles.navIconText, activeTab === 'home' && styles.navIconActive]}>⌂</Text>
+          <Image
+            source={require("./assets/home.png")}
+            style={[styles.navIconImage]}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
 
         {/* Middle Cylindrical Button - Transactions */}
         <TouchableOpacity
-          style={[styles.cylindricalButton, activeTab === 'transactions' && styles.cylindricalButtonActive]}
-          onPress={() => setActiveTab('transactions')}
+          style={[
+            styles.cylindricalButton,
+            activeTab === "transactions" && styles.cylindricalButtonActive,
+          ]}
+          onPress={() => setActiveTab("transactions")}
           activeOpacity={0.8}
         >
-          <Text style={[styles.navIconText, activeTab === 'transactions' && styles.navIconActive]}>$</Text>
-          <Text style={[styles.navNumberText, activeTab === 'transactions' && styles.navIconActive]}>199</Text>
+          <Image
+            source={require("./assets/wallet.png")}
+            style={[
+              styles.navIconImage,
+              activeTab === "transactions" && styles.navIconActive,
+            ]}
+            resizeMode="contain"
+          />
+          <Text
+            style={[
+              styles.navNumberText,
+              activeTab === "transactions" && styles.navIconActive,
+            ]}
+          >
+            199.99
+          </Text>
         </TouchableOpacity>
 
         {/* Right Circular Button - Profile */}
         <TouchableOpacity
-          style={[styles.circularButton, activeTab === 'profile' && styles.circularButtonActive]}
-          onPress={() => setActiveTab('profile')}
+          style={[
+            styles.circularButton,
+            activeTab === "profile" && styles.circularButtonActive,
+          ]}
+          onPress={() => setActiveTab("profile")}
           activeOpacity={0.8}
         >
-          <Text style={[styles.navIconText, activeTab === 'profile' && styles.navIconActive]}>☰</Text>
+          <Image
+            source={require("./assets/profile.png")}
+            style={[styles.navIconImage]}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
       </View>
     </View>
-  )
+  );
 }
 
 // ============================================================================
@@ -733,7 +767,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loginButtonDisabled: {
-    backgroundColor: '#93C5FD',
+    backgroundColor: '#1A1A1A',
   },
   loginButtonText: {
     fontSize: 18,
@@ -863,6 +897,7 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 16,
     minWidth: 120,
+    maxWidth: 200,
     flexDirection: 'row',
     gap: 8,
   },
@@ -878,13 +913,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
   },
+  navIconImage: {
+    width: 28,
+    height: 28,
+  },
   navNumberText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: '#000',
   },
   navIconActive: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
+    tintColor: '#FFFFFF',
   },
   // Auth method tabs styles
   authMethodTabs: {
@@ -999,12 +1039,14 @@ const styles = StyleSheet.create({
   },
   loginHeaderContainer: {
     marginBottom: 32,
-    width: '100%',
-    backgroundColor: '#000000',
+    width: "87%",
+    borderColor: '#F5F5F5',
+    borderWidth: 2,
     borderRadius: 18,
     height: 56,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   loginHeaderText: {
     fontSize: 13,
@@ -1047,7 +1089,7 @@ const styles = StyleSheet.create({
     fontFamily: 'SFProDisplay-Regular',
     color: '#000000',
     marginBottom: 12,
-    width: '100%',
+    width: '87%',
     height: 56,
   },
   passwordContainer: {
@@ -1086,7 +1128,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 48,
-    width: '100%',
+    width: '87%',
     height: 56,
   },
   sendCodeButtonText: {
