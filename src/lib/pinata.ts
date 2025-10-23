@@ -5,9 +5,25 @@
 
 import Constants from 'expo-constants'
 import * as FileSystem from 'expo-file-system'
+import * as FileSystemLegacy from 'expo-file-system/legacy'
 
 const PINATA_JWT = Constants.expoConfig?.extra?.pinataJwt || process.env.EXPO_PUBLIC_PINATA_JWT
 const PINATA_GATEWAY = Constants.expoConfig?.extra?.pinataGateway || process.env.EXPO_PUBLIC_PINATA_GATEWAY || 'https://gateway.pinata.cloud'
+
+/**
+ * Get MIME type from file extension
+ */
+function getMimeType(filePath: string): string {
+  const extension = filePath.split('.').pop()?.toLowerCase()
+  const mimeTypes: Record<string, string> = {
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'webp': 'image/webp',
+  }
+  return mimeTypes[extension || ''] || 'image/jpeg'
+}
 
 export interface PinataUploadResponse {
   IpfsHash: string
@@ -29,22 +45,21 @@ export async function uploadImageToPinata(imageUri: string): Promise<PinataUploa
   try {
     console.log('📤 Uploading image to Pinata IPFS...')
 
-    // Read file as base64
-    const base64 = await FileSystem.readAsStringAsync(imageUri, {
-      encoding: 'base64',
-    })
-
-    // Get file info
-    const fileInfo = await FileSystem.getInfoAsync(imageUri)
+    // Get file name from URI
     const fileName = imageUri.split('/').pop() || 'profile-image.jpg'
 
     // Create form data
     const formData = new FormData()
 
-    // Convert base64 to blob
-    const blob = await fetch(`data:image/jpeg;base64,${base64}`).then(r => r.blob())
+    // Get correct MIME type
+    const mimeType = getMimeType(imageUri)
 
-    formData.append('file', blob as any)
+    // React Native way: use file URI directly in FormData
+    formData.append('file', {
+      uri: imageUri,
+      name: fileName,
+      type: mimeType,
+    } as any)
 
     // Optional: Add metadata
     const metadata = JSON.stringify({
@@ -95,7 +110,7 @@ export async function validateImage(imageUri: string): Promise<{
   error?: string
 }> {
   try {
-    const fileInfo = await FileSystem.getInfoAsync(imageUri)
+    const fileInfo = await FileSystemLegacy.getInfoAsync(imageUri)
 
     if (!fileInfo.exists) {
       return { valid: false, error: 'File does not exist' }

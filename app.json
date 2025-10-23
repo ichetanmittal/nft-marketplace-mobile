@@ -50,7 +50,9 @@
         "projectId": "your-project-id"
       },
       "privyAppId": "cmgkp5stj00n9lb0c3xcazezg",
-      "privyClientId": "client-WY6RbZy9K7X6WakSVjqachQDU5NSMVR6r9FnisuKWQDJv"
+      "privyClientId": "client-WY6RbZy9K7X6WakSVjqachQDU5NSMVR6r9FnisuKWQDJv",
+      "pinataJwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzODNlMjVmNi1iNWY3LTRhNjctYWQ3Yy1mMWMyY2RhOWIyOTIiLCJlbWFpbCI6ImljaGV0YW5taXR0YWxAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6ImMxNmIxMjFlZjgwYjkxN2IyZWRhIiwic2NvcGVkS2V5U2VjcmV0IjoiNzI0ZTViNTk4ZTZhYmE0NDk0MjY4YTE0YjA2ZGM0YzIxODAxODg0ODE2ZjZmMmUxNmExZDQxZmVlOWRiNGVlMCIsImV4cCI6MTc5MTExNDc1Mn0.KOES2fO6fpZ0PtkTu5FCdjUEhCnormIcoL7VUuyCVQY",
+      "pinataGateway": "https://gateway.pinata.cloud"
     }
   }
 }
